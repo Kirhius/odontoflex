@@ -1,0 +1,50 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.backLink {
+  font-size: 18px;
+  color: var(--color-ink-soft);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.backLink:hover {
+  background: var(--color-surface);
+}
+
+.title {
+  font-size: 24px;
+  font-style: italic;
+  margin-bottom: 16px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: 16px 18px;
+  color: var(--color-ink);
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: 15.5px;
+  display: block;
+}
+
+.cardText {
+  font-size: 13px;
+  color: var(--color-ink-soft);
+  margin-top: 2px;
+}

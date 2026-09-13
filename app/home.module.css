@@ -1,0 +1,51 @@
+.home {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 28px;
+}
+
+.mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-gold-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.title {
+  font-size: 36px;
+  font-style: italic;
+  color: var(--color-ink);
+}
+
+.subtitle {
+  max-width: 320px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 8px;
+}
+
+.footnote {
+  font-size: 12px;
+  color: var(--color-ink-faint);
+  letter-spacing: 0.02em;
+}

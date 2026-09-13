@@ -1,0 +1,155 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.backLink {
+  font-size: 18px;
+  color: var(--color-ink-soft);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.backLink:hover {
+  background: var(--color-surface);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.title {
+  font-size: 26px;
+  font-style: italic;
+}
+
+.hint {
+  font-size: 13.5px;
+  color: var(--color-ink-soft);
+  margin-top: -8px;
+}
+
+.segmented {
+  display: flex;
+  background: var(--color-surface);
+  border-radius: 999px;
+  padding: 4px;
+  border: 1px solid var(--color-line);
+}
+
+.segment {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 9px 0;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-ink-soft);
+}
+
+.segmentActive {
+  background: var(--color-ink);
+  color: #fdfbf6;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty {
+  font-size: 13.5px;
+  color: var(--color-ink-soft);
+  padding: 10px 2px;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-surface);
+  border-radius: var(--radius-s);
+  padding: 10px 12px;
+}
+
+.listDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.listText {
+  flex: 1;
+  font-size: 14px;
+}
+
+.listRemove {
+  border: none;
+  background: transparent;
+  color: var(--color-ink-faint);
+  font-size: 13px;
+  padding: 4px;
+}
+
+.listRemove:hover {
+  color: var(--color-danger);
+}
+
+.rowButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.rowButtons .btn {
+  flex: 1;
+}
+
+.planItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-surface);
+  border-radius: var(--radius-s);
+  padding: 10px 12px;
+}
+
+.planIndex {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-gold-deep);
+  width: 18px;
+  flex: 0 0 auto;
+}
+
+.planArrows {
+  display: flex;
+  gap: 4px;
+}
+
+.arrowBtn {
+  border: 1px solid var(--color-line);
+  background: #fff;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.arrowBtn:disabled {
+  opacity: 0.3;
+}
