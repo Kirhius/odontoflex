@@ -1,10 +1,9 @@
 "use client";
 
-import { useId } from "react";
-
 // Icones de dente estilizados, simples o suficiente para reconhecer o tipo
-// (incisivo, canino, premolar, molar, molar deciduo) e a(s) cor(es) do(s)
-// procedimento(s). viewBox comum: 0 0 34 64.
+// (incisivo, canino, premolar, molar, molar deciduo). O contorno fica sempre
+// neutro; quem indica o(s) procedimento(s) sao pequenos circulos coloridos
+// no meio do dente — um por procedimento, na cor configurada dele.
 
 function Shape({ type }) {
   switch (type) {
@@ -52,50 +51,64 @@ function Shape({ type }) {
   }
 }
 
+// Agrupa os circulos de procedimento centralizados em (17, 32) — o meio do
+// icone. Ate 3 por linha; se tiver mais, quebra em novas linhas.
+function ProcedureDots({ colors }) {
+  if (colors.length === 0) return null;
+
+  const maxPerRow = 3;
+  const radius = colors.length <= 3 ? 3.6 : 3;
+  const step = radius * 2 + 2.4;
+
+  const rows = [];
+  for (let i = 0; i < colors.length; i += maxPerRow) {
+    rows.push(colors.slice(i, i + maxPerRow));
+  }
+
+  const rowsHeight = (rows.length - 1) * step;
+  const startY = 32 - rowsHeight / 2;
+
+  return (
+    <g>
+      {rows.map((row, rowIndex) => {
+        const rowWidth = (row.length - 1) * step;
+        const startX = 17 - rowWidth / 2;
+        const cy = startY + rowIndex * step;
+        return row.map((color, colIndex) => (
+          <circle
+            key={`${rowIndex}-${colIndex}`}
+            cx={startX + colIndex * step}
+            cy={cy}
+            r={radius}
+            fill={color}
+            stroke="#fff"
+            strokeWidth="1"
+          />
+        ));
+      })}
+    </g>
+  );
+}
+
 // `colors`: lista de cores (uma por procedimento) atribuidas ao dente.
-// Vazio = dente sem procedimento (preenchimento neutro).
-// 1 cor = preenchimento solido (como antes).
-// 2+ cores = a silhueta do dente e dividida em faixas verticais, uma por cor,
-// para mostrar varios procedimentos no mesmo dente (ex: canal + pino + bloco).
+// Vazio = sem procedimento, dente so com contorno. 1+ cores = um circulo
+// colorido por procedimento, centralizado no meio do dente.
 export default function ToothIcon({ type, colors = [], arch = "inferior", size = 34 }) {
-  const rawId = useId();
-  const clipId = `tooth-clip-${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
   const rotate = arch === "superior" ? "rotate(180 17 32)" : undefined;
-  const hasColor = colors.length > 0;
-  const strokeColor = hasColor ? "rgba(20,24,22,0.6)" : "var(--ink-soft, #8b968f)";
-  const stripeWidth = 34 / Math.max(colors.length, 1);
 
   return (
     <svg viewBox="0 0 34 64" width={size} height={size * (64 / 34)} className="tooth-icon">
       <g transform={rotate}>
-        <clipPath id={clipId}>
-          <Shape type={type} />
-        </clipPath>
-        <g clipPath={`url(#${clipId})`}>
-          {hasColor ? (
-            colors.map((color, i) => (
-              <rect
-                key={i}
-                x={i * stripeWidth}
-                y="0"
-                width={stripeWidth + 0.5}
-                height="64"
-                fill={color}
-              />
-            ))
-          ) : (
-            <rect x="0" y="0" width="34" height="64" fill="var(--color-surface, #fbfaf6)" />
-          )}
-        </g>
         <g
-          fill="none"
-          stroke={strokeColor}
+          fill="var(--color-surface, #fbfaf6)"
+          stroke="var(--ink-soft, #8b968f)"
           strokeWidth="2.1"
           strokeLinejoin="round"
           strokeLinecap="round"
         >
           <Shape type={type} />
         </g>
+        <ProcedureDots colors={colors} />
       </g>
     </svg>
   );
