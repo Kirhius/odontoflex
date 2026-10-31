@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { DEFAULT_PROCEDURES, loadProcedures, saveProcedures, createProcedure } from "@/lib/procedures";
+import {
+  DEFAULT_PROCEDURES,
+  ESCOPOS,
+  loadProcedures,
+  saveProcedures,
+  createProcedure,
+} from "@/lib/procedures";
 import styles from "./procedimentos.module.css";
 
 const NIVEIS = [1, 2, 3, 4, 5];
@@ -13,6 +19,7 @@ export default function ProcedimentosPage() {
   const [novoNome, setNovoNome] = useState("");
   const [novaCor, setNovaCor] = useState("#4F9C86");
   const [novaComplexidade, setNovaComplexidade] = useState(1);
+  const [novoEscopo, setNovoEscopo] = useState("dente");
 
   useEffect(() => {
     setProcedures(loadProcedures());
@@ -40,11 +47,13 @@ export default function ProcedimentosPage() {
       nome: novoNome,
       cor: novaCor,
       complexidade: novaComplexidade,
+      escopo: novoEscopo,
     });
     setProcedures((prev) => [...prev, novo]);
     setNovoNome("");
     setNovaCor("#4F9C86");
     setNovaComplexidade(1);
+    setNovoEscopo("dente");
   }
 
   return (
@@ -57,7 +66,9 @@ export default function ProcedimentosPage() {
       </header>
 
       <h1 className={styles.title}>Procedimentos</h1>
-      <p className={styles.hint}>Cor e complexidade definem o odontograma e a ordem de planejamento.</p>
+      <p className={styles.hint}>
+        Cor, complexidade e onde o procedimento se aplica (dente, arcada ou boca toda).
+      </p>
 
       <div className={styles.list}>
         {procedures.map((proc) => (
@@ -86,18 +97,37 @@ export default function ProcedimentosPage() {
                 ✕
               </button>
             </div>
-            <div className={styles.levels}>
-              {NIVEIS.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={`${styles.level} ${proc.complexidade === n ? styles.levelActive : ""}`}
-                  onClick={() => updateField(proc.id, "complexidade", n)}
-                  aria-pressed={proc.complexidade === n}
-                >
-                  {n}
-                </button>
-              ))}
+            <div className={styles.fieldGroup}>
+              <span className={styles.fieldLabel}>Complexidade</span>
+              <div className={styles.levels}>
+                {NIVEIS.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`${styles.level} ${proc.complexidade === n ? styles.levelActive : ""}`}
+                    onClick={() => updateField(proc.id, "complexidade", n)}
+                    aria-pressed={proc.complexidade === n}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.fieldGroup}>
+              <span className={styles.fieldLabel}>Aplica-se a</span>
+              <div className={styles.levels}>
+                {ESCOPOS.map((e) => (
+                  <button
+                    key={e.value}
+                    type="button"
+                    className={`${styles.level} ${proc.escopo === e.value ? styles.levelActive : ""}`}
+                    onClick={() => updateField(proc.id, "escopo", e.value)}
+                    aria-pressed={proc.escopo === e.value}
+                  >
+                    {e.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -121,18 +151,37 @@ export default function ProcedimentosPage() {
             className={styles.nameInput}
           />
         </div>
-        <div className={styles.levels}>
-          {NIVEIS.map((n) => (
-            <button
-              key={n}
-              type="button"
-              className={`${styles.level} ${novaComplexidade === n ? styles.levelActive : ""}`}
-              onClick={() => setNovaComplexidade(n)}
-              aria-pressed={novaComplexidade === n}
-            >
-              {n}
-            </button>
-          ))}
+        <div className={styles.fieldGroup}>
+          <span className={styles.fieldLabel}>Complexidade</span>
+          <div className={styles.levels}>
+            {NIVEIS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`${styles.level} ${novaComplexidade === n ? styles.levelActive : ""}`}
+                onClick={() => setNovaComplexidade(n)}
+                aria-pressed={novaComplexidade === n}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className={styles.fieldGroup}>
+          <span className={styles.fieldLabel}>Aplica-se a</span>
+          <div className={styles.levels}>
+            {ESCOPOS.map((e) => (
+              <button
+                key={e.value}
+                type="button"
+                className={`${styles.level} ${novoEscopo === e.value ? styles.levelActive : ""}`}
+                onClick={() => setNovoEscopo(e.value)}
+                aria-pressed={novoEscopo === e.value}
+              >
+                {e.label}
+              </button>
+            ))}
+          </div>
         </div>
         <button type="submit" className="btn btn-gold btn-block">
           Adicionar procedimento
