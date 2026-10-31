@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import ToothChart from "@/components/ToothChart";
 import ProcedureModal from "@/components/ProcedureModal";
 import { loadProcedures } from "@/lib/procedures";
+import { loadPdfAssets, buildPdf, pdfFileName } from "@/lib/pdf";
 import styles from "./avaliar.module.css";
 
 // Cada selecao e um item independente: { id, tooth, procedureId }.
@@ -34,10 +35,24 @@ export default function AvaliarPage() {
   const [step, setStep] = useState(1);
   const [activeTooth, setActiveTooth] = useState(null);
   const [planOrder, setPlanOrder] = useState([]);
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const pdfAssetsRef = useRef(null);
 
   useEffect(() => {
     setProcedures(loadProcedures());
   }, []);
+
+  // Pre-carrega a biblioteca de PDF e a logo ao chegar na visao geral, para
+  // que o clique em "Enviar por WhatsApp" aconteca dentro do gesto do usuario.
+  useEffect(() => {
+    if (step !== 3 || pdfAssetsRef.current) return;
+    loadPdfAssets()
+      .then((assets) => {
+        pdfAssetsRef.current = assets;
+      })
+      .catch(() => {});
+  }, [step]);
 
   const procedureById = useMemo(() => {
     return Object.fromEntries(procedures.map((p) => [p.id, p]));
@@ -86,8 +101,9 @@ export default function AvaliarPage() {
     setSelections((prev) => prev.filter((s) => s.id !== id));
   }
 
-  function goToPlanejar() {
+  function goToVisualizar() {
     setPlanOrder((prev) => buildPlanOrder(selections, procedureById, prev));
+    setNotice("");
     setStep(3);
   }
 
@@ -102,6 +118,67 @@ export default function AvaliarPage() {
   }
 
   const selectionsById = useMemo(() => Object.fromEntries(selections.map((s) => [s.id, s])), [selections]);
+
+  // Itens na ordem da visao geral, prontos para o PDF.
+  const planItems = useMemo(() => {
+    return planOrder
+      .map((id) => selectionsById[id])
+      .filter(Boolean)
+      .map((item) => ({
+        tooth: item.tooth,
+        name: procedureById[item.procedureId]?.nome ?? "Procedimento",
+      }));
+  }, [planOrder, selectionsById, procedureById]);
+
+  const teethCount = useMemo(() => new Set(planItems.map((i) => i.tooth)).size, [planItems]);
+
+  async function getPdfDoc() {
+    const assets = pdfAssetsRef.current ?? (await loadPdfAssets());
+    pdfAssetsRef.current = assets;
+    return buildPdf(assets, { items: planItems });
+  }
+
+  async function handleExportPdf() {
+    if (busy || planItems.length === 0) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const doc = await getPdfDoc();
+      doc.save(pdfFileName());
+    } catch {
+      setNotice("Não foi possível gerar o PDF. Tente novamente.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleShareWhatsApp() {
+    if (busy || planItems.length === 0) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const doc = await getPdfDoc();
+      const fileName = pdfFileName();
+      const file = new File([doc.output("blob")], fileName, { type: "application/pdf" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Abre o menu de compartilhamento do aparelho: basta escolher o
+        // WhatsApp e depois o contato (clinica ou paciente).
+        await navigator.share({ files: [file], title: "Avaliação odontológica" });
+      } else {
+        doc.save(fileName);
+        setNotice(
+          "Este navegador não permite enviar o arquivo direto. O PDF foi baixado: anexe-o na conversa do WhatsApp."
+        );
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        setNotice("Não foi possível compartilhar o PDF. Use o botão Exportar PDF.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <main className="screen">
@@ -200,10 +277,10 @@ export default function AvaliarPage() {
             <button
               type="button"
               className="btn btn-mint"
-              onClick={goToPlanejar}
+              onClick={goToVisualizar}
               disabled={!hasSelections}
             >
-              Planejar
+              Visualizar
             </button>
           </div>
         </section>
@@ -211,10 +288,21 @@ export default function AvaliarPage() {
 
       {step === 3 && (
         <section className={styles.section}>
-          <h1 className={styles.title}>Planejar</h1>
+          <h1 className={styles.title}>Visualizar</h1>
           <p className={styles.hint}>
-            Do menos ao mais complexo. Use as setas para priorizar.
+            Visão geral dos procedimentos, do menos ao mais complexo. Use as setas para priorizar.
           </p>
+
+          <div className={styles.summaryRow}>
+            <div className={styles.summaryChip}>
+              <strong>{planItems.length}</strong>
+              <span>{planItems.length === 1 ? "procedimento" : "procedimentos"}</span>
+            </div>
+            <div className={styles.summaryChip}>
+              <strong>{teethCount}</strong>
+              <span>{teethCount === 1 ? "dente" : "dentes"}</span>
+            </div>
+          </div>
 
           <div className={styles.list}>
             {planOrder.map((id, index) => {
@@ -253,9 +341,33 @@ export default function AvaliarPage() {
             })}
           </div>
 
-          <button type="button" className="btn btn-outline btn-block" onClick={() => setStep(2)}>
-            Voltar
-          </button>
+          {notice && (
+            <p className={styles.notice} role="status">
+              {notice}
+            </p>
+          )}
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={handleExportPdf}
+              disabled={busy || planItems.length === 0}
+            >
+              Exportar PDF
+            </button>
+            <button
+              type="button"
+              className="btn btn-mint btn-block"
+              onClick={handleShareWhatsApp}
+              disabled={busy || planItems.length === 0}
+            >
+              Enviar por WhatsApp
+            </button>
+            <button type="button" className="btn btn-outline btn-block" onClick={() => setStep(2)}>
+              Voltar
+            </button>
+          </div>
         </section>
       )}
 
